@@ -1,6 +1,4 @@
-# DESAFÍO COMPLEMENTARIO
-
-## Módulos de testing para proyecto final
+# Módulos de testing para proyecto final
 
 ## Consigna
 
