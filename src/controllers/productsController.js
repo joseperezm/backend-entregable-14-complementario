@@ -40,8 +40,9 @@ exports.getProductById = async (req, res, next) => {
     try {
         const product = await productService.getProductById(req.params.pid);
         if (!product) {
-            next({ code: 'NOT_FOUND' });
-            logger.info("Producto no encontrado");
+            const error = new Error('Producto no encontrado');
+            error.code = 'NOT_FOUND';
+            res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
         } else {
             res.json(product);
         }
@@ -75,11 +76,11 @@ exports.addProduct = async (req, res, next) => {
 
         if (requiredFields.length > 0) {
             logger.debug("Faltan campos requeridos con sus tipos:", missingFieldDetails.join(", "));
-            throw {
+            return res.status(400).json({
                 code: 'MISSING_FIELDS',
                 message: 'Campos requeridos faltantes: ' + missingFieldDetails.join(", "),
                 fields: requiredFields
-            };
+            });
         }
 
         const ownerId = req.session.user.id;
@@ -96,15 +97,15 @@ exports.addProduct = async (req, res, next) => {
 exports.updateProduct = async (req, res, next) => {
     try {
         const updatedProduct = await productService.updateProduct(req.params.id, req.body);
-        if (updatedProduct) {
-            res.json({ message: 'Producto actualizado correctamente', product: updatedProduct });
-        } else {
+        if (!updatedProduct) {
             logger.info("Producto no encontrado");
-            next({ code: 'NOT_FOUND' });
+            return res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
+        } else {
+            res.json({ message: 'Producto actualizado correctamente', product: updatedProduct });
         }
     } catch (error) {
-        next({ code: 'INTERNAL_SERVER_ERROR', original: error });
         logger.error("Error interno", error);
+        next({ code: 'INTERNAL_SERVER_ERROR', original: error });
     }
 };
 
@@ -118,7 +119,7 @@ exports.deleteProduct = async (req, res, next) => {
 
         if (!product) {
             logger.info("Producto no encontrado");
-            return next({ code: 'NOT_FOUND' });
+            return res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
         }
 
         if (userRole === 'premium' && product.owner.toString() !== userId.toString()) {
@@ -131,7 +132,7 @@ exports.deleteProduct = async (req, res, next) => {
             res.status(200).json({ message: 'Producto eliminado correctamente' });
         } else {
             logger.info("Producto no encontrado");
-            next({ code: 'NOT_FOUND' });
+            return res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
         }
     } catch (error) {
         next({ code: 'INTERNAL_SERVER_ERROR', original: error });

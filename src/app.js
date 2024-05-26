@@ -132,6 +132,9 @@ app.use(errorHandler);
 const server = app.listen(PORT, () => {
     logger.debug(`Servidor escuchando en el puerto ${PORT}`);
 });
+
+module.exports = app;
+
 //Se borra esto?
 const ProductManagerFs = require("./dao/fs/productManager-fs")
 const productManagerFs = new ProductManagerFs("./dao/fs/products.json");
